@@ -1,0 +1,50 @@
+from flask import Flask, render_template, request
+
+from api import repos_with_most_stars
+from exceptions import GitHubApiError
+
+# TO RUN THE FLASK: FLASK_APP=app.py flask run
+# OR: py -m flask run
+
+# Live update of the code only for development purposes
+
+app = Flask(__name__)
+
+available_languages = ["Pyhton","JavaScript","Ruby","Java"]
+
+"""
+@app.route("/")
+def hello_world():
+    name = "Anja"
+    return render_template("index.html", name=name)
+
+@app.route("/fr")
+def hello_world_fr():
+    return "Bonjour"
+
+@app.route("/brand/<brand>")
+def hello_brand(brand):
+    return f"Hey, this is {brand}"
+"""
+
+@app.route('/', methods=['POST', 'GET'])
+def index():
+    if request.method == 'GET':
+        # Use the list of all languages
+        selected_languages = available_languages
+    elif request.method == 'POST':
+        # Use the languages we selected in the request form
+        selected_languages = request.form.getlist("languages")
+
+    results = repos_with_most_stars(selected_languages)
+
+    return render_template(
+        'index.html',
+        selected_languages=selected_languages,
+        available_languages=available_languages,
+        results=results)
+
+
+@app.errorhandler(GitHubApiError)
+def handle_api_error(error):
+    return render_template('error.html', message=error)
